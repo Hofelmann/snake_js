@@ -13,7 +13,7 @@ class MinHeap {
     }
 
     // Checks if the f cost of the child is smaller than the parent.
-    check_parent(child, parent) {
+    checkParent(child, parent) {
         if (this.heap[child].f < this.heap[parent].f) { return true; }
         return false;
     }
@@ -27,7 +27,7 @@ class MinHeap {
             if (current === 1) { break; }
             let parent = Math.floor(current / 2);
             // Swap the node if its parent has a higher value.
-            if (this.check_parent(current, parent)) {
+            if (this.checkParent(current, parent)) {
                 this.swap(parent, current);
                 current = parent;
             } else { break; }
@@ -40,7 +40,6 @@ class MinHeap {
         if (this.heap.length === 1) {
             return null;
         }
-        // Something messes up big here, this.heap[1] does not return the item on index 1??
         let min = this.heap[1];
         // Replace first element with last and remove last element.
         this.heap[1] = this.heap[this.heap.length - 1];
@@ -52,11 +51,11 @@ class MinHeap {
             // Currently as low as it can swap to.
             if (child >= this.heap.length) { break; }
             // Check if there are two children and if right one is smaller.
-            if (child + 1 < this.heap.length && this.check_parent(child + 1, child)) {
+            if (child + 1 < this.heap.length && this.checkParent(child + 1, child)) {
                 child += 1;
             }
             // Check if current is smaller than smallest child.
-            if (this.check_parent(child, current)) {
+            if (this.checkParent(child, current)) {
                 this.swap(child, current);
                 current = child;
             } else {

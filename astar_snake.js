@@ -7,58 +7,60 @@ class AStar {
 
     // Return next step and remove it from solutions array.
     step() {
+        // Somehow the steps did not lead to the food, figure out a new route.
         if (this.solution.length < 1) {
-            return;
+            this.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1])
         }
-        return this.solution.pop();
+        let diff = this.solution.pop();
+        // There can only be a move in 1 direction.
+        // Thus if diffX is 0 than the change is in the y direction.
+        if (diff[0] === 0) {
+            if (diff[1] === 10) {
+                snake.goSouth();
+            } else {
+                snake.goNorth();
+            }
+        }
+        else if (diff[0] === 10) {
+            snake.goEast();
+        } else {
+            snake.goWest();
+        }
     }
 
-    // Converts path of nodes into array of key presses.
-    convert_to_steps(path) {
-        let steps = []
-        let current = path[0];
-        for (let i = 1; i < path.length; i++) {
-            let next = path[i];
-            let xDiff = next.x - current.x;
-            if (xDiff === 0) {
-                // Move is not in x direction, so either yDiff = 1 or -1.
-                let yDiff = next.y - current.y;
-                if (yDiff === 1) {
-                    steps.push("s");
-                } else {
-                    steps.push("w");
-                }
-            }
-            else if (xDiff === 1) {
-                steps.push("d")
-            } else {
-                steps.push("a")
-            }
+    convertPath(path) {
+        let steps = [];
+        let current = path.pop()
+        let len = path.length;
+        for (let i = 0; i < len; i++) {
+            let next = path.pop();
+            let diffX = next.x - current.x;
+            let diffY = next.y - current.y;
+            steps.push([diffX, diffY]);
             current = next;
         }
-        this.solution = steps.reverse();
+        this.solution = steps;
     }
 
     // Traverses the given node all the way up to the first parent
     // Returns the reversed lists with the path from start to finish.
-    get_path(node) {
-        let path = [this.goal];
+    getPath(node) {
+        let path = [];
         while (node !== null) {
             path.push(node);
             node = node.parent;
         }
-        path = path.reverse();
-        this.convert_to_steps(path);
+        this.convertPath(path)
     }
 
     // Set the canvas borders and impassable blocks on the canvas.
-    set_barriers(width, height, blocks) {
+    setBarriers(width, height, blocks) {
         this.impassable = blocks;
         this.borders = [width, height];
     }
 
     // Checks if the current node is a valid, passable, position.
-    is_valid(node) {
+    isValid(node) {
         // Check if it is withing the borders.
         if (node.x < 0 || node.x > this.borders[0] - squareSize) { return false; }
         if (node.y < 0 || node.y > this.borders[1] - squareSize) { return false; }
@@ -74,7 +76,7 @@ class AStar {
     // Uses custom node and min-heap structure.
     solve(startX, startY, goalX, goalY) {
         let start = new Node(startX, startY);
-        start.set_costs(goalX, goalY, 0);
+        start.setCosts(goalX, goalY, 0);
 
         this.goal = new Node(goalX, goalY);
         console.log("Goal:")
@@ -94,16 +96,15 @@ class AStar {
 
             // Arrived at goal node. Return parent path in reverse.
             if (current.equals(this.goal)) {
-                console.log("Path found!");
-                this.get_path(current);
+                this.getPath(current);
                 return;
             }
 
-            let neighbours = current.get_neighbours();
+            let neighbours = current.getNeighbours();
             for (let i = 0; i < neighbours.length; i++) {
                 // Check if the current neighbour is able to be used as a path.
                 let n = neighbours[i];
-                if (!this.is_valid(n)){
+                if (!this.isValid(n)){
                     continue;
                 }
 
@@ -118,7 +119,7 @@ class AStar {
                         found = true;
                         if (cost < v.g) {
                             v.parent = current;
-                            v.set_costs(goalX, goalY, cost);
+                            v.setCosts(goalX, goalY, cost);
 
                             if (!disc.inside(v)) { disc.insert(v); }
                         }
@@ -128,14 +129,13 @@ class AStar {
                 // The node has not been found before, add it as a new possible path.
                 if (!found) {
                     n.parent = current;
-                    n.set_costs(goalX, goalY, cost);
+                    n.setCosts(goalX, goalY, cost);
                     disc.insert(n);
                     visited.push(n);
                 }
             }
         }
         // No route has been found.
-        console.log("No path :(")
         return
     }
 }
@@ -155,19 +155,19 @@ var astar;
     let lastFood = snake.food;
     let borders = [canvas.width, canvas.height];
     let head = snake.body[0]
-    astar.set_barriers(borders[0], borders[1], snake.body.slice(1));
-    console.log("Starting solver...");
-    astar.solve(head[0], head[1], lastFood[0], lastFood[1]);
+    astar.setBarriers(borders[0], borders[1], snake.body.slice(1));
+    astar.solve(head[0], head[1], snake.food[0], snake.food[1]);
 
     window.setInterval(() => {
         context.clearRect(0, 0, canvas.width, canvas.height);
         snake.update();
         // Check if the current food block has been eaten, if so run a*.
         if (lastFood[0] !== snake.food[0] && lastFood[1] !== snake.food[1]) {
-            astar.set_barriers(borders[0], borders[1], snake.body.slice(1));
-            astar.solve(snake.body[0][0], snake.body[0][0], lastFood[0], lastFood[1]);
+            astar.setBarriers(borders[0], borders[1], snake.body.slice(1));
+            astar.solve(snake.body[0][0], snake.body[0][0], snake.food[0], snake.food[1]);
+            lastFood = snake.food;
         }
-        snake.changeDirection(astar.step());
+        astar.step();
         snake.draw();
-    }, 1000);
+    }, 150);
 }());

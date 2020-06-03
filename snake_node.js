@@ -19,13 +19,13 @@ class Node {
     }
 
     // Set the costs. If no parent is set, the cost will become infinity.
-    set_costs(goalX, goalY, g) {
+    setCosts(goalX, goalY, g) {
         this.h = heuristic(this.x, this.y, goalX, goalY);
         this.g = g;
         this.f = this.h + g;
     }
 
-    get_neighbours() {
+    getNeighbours() {
         let offsets = [[10, 0], [-10, 0], [0, 10], [0, -10]];
         let neighbours = []
         for (let i = 0; i < offsets.length; i++) {

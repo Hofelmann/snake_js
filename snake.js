@@ -29,17 +29,13 @@ class Snake {
 
     // Resets all snake values for fresh spawn.
     reset() {
-        let x = Math.floor(Math.random() * canvas.width / 10) * 10 - squareSize;
-        let y = Math.floor(Math.random() * canvas.height / 10) * 10 - squareSize;
-        if (x < 0) { x = 0; }
-        if (y < 0) { y = 0; }
+        let x = Math.floor(canvas.width / 20) * 10;
+        let y = Math.floor(canvas.height / 20) * 10;
         this.speed = squareSize;
         this.body = [[x, y]];
 
-        // Choose one of the four starting directions.
-        let directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-        let index = Math.floor(Math.random() * directions.length);
-        this.direction = directions[index];
+        this.direction = [-1, 0];
+        this.lastDirection = this.direction;
         this.placeFood();
     }
 
@@ -53,6 +49,9 @@ class Snake {
     // Update the snakes position and check if it has died.
     update() {
         this.move();
+
+        // Save the last direction.
+        this.lastDirection = this.direction;
 
         let x = this.body[0][0];
         let y = this.body[0][1];
@@ -84,37 +83,25 @@ class Snake {
         }
     }
 
-    // Uses input key string to determine the new direction.
-    // Direction flipping is not possible, one must turn.
-    changeDirection(direction) {
-        switch (direction) {
-            case "w":
-            case "ArrowUp":
-                if (this.direction[1] !== 1){
-                    this.direction = [0, -1];
-                }
-                break;
-            case "s":
-            case "ArrowDown":
-                if (this.direction[1] !== -1) {
-                   this.direction = [0, 1];
-                }
-                break;
-            case "d":
-            case "ArrowRight":
-                if (this.direction[0] !== -1) {
-                    this.direction = [1, 0];
-                }
-                break;
-            case "a":
-            case "ArrowLeft":
-                if (this.direction[0] !== 1) {
-                    this.direction = [-1, 0];
-                }
-                break;
-            // If the pressed key is not arrow keys or wasd, simply do nothing.
-            default:
-                break;
-        }
+    // Directional functions below. Simply changes the direction of the snake.
+    goNorth() {
+        // Check if the last direction is not the opposite of new direction.
+        // This move would be impossible in snake.
+        if (this.lastDirection[1] !== 1) { this.direction = [0, -1]; }
+    }
+
+    // See goNorth()
+    goEast() {
+        if (this.lastDirection[0] !== -1) { this.direction = [1, 0]; }
+    }
+
+    // See goNorth()
+    goSouth() {
+        if (this.lastDirection[1] !== -1) { this.direction = [0, 1]; }
+    }
+
+    // See goNorth()
+    goWest() {
+        if (this.lastDirection[0] !== 1) { this.direction = [-1, 0]; }
     }
 }

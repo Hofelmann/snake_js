@@ -7,7 +7,6 @@
         <title>Snake</title>
 
         <!-- Styles -->
-        <link href="{{ asset('css/welcome.css') }}" rel="stylesheet">
         <style type="text/css">
             body {
               overflow: hidden; /* Hide scrollbars */
@@ -22,8 +21,11 @@
     </head>
 
     <body>
-        <canvas class="snake" width="1000" height="540"></canvas>
+        <canvas class="snake" width="200" height="200"></canvas>
         <script src="snake.js"></script>
-        <script src="game.js"></script>
+        <script src="snake_node.js"></script>
+        <script src="snake_minheap.js"></script>
+        <script src="astar_snake.js"></script>
+        <!-- <script src="game.js"></script> -->
     </body>
 </html>

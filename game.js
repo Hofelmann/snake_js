@@ -16,5 +16,24 @@ var snake;
 }());
 
 window.addEventListener("keydown", event => {
-    snake.changeDirection(event.key);
+    switch (event.key) {
+        case "w":
+        case "ArrowUp":
+            snake.goNorth();
+            break;
+        case "s":
+        case "ArrowDown":
+            snake.goSouth();
+            break;
+        case "d":
+        case "ArrowRight":
+            snake.goEast();
+            break;
+        case "a":
+        case "ArrowLeft":
+            snake.goWest();
+            break;
+        default:
+            break;
+    }
 });
