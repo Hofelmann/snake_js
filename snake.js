@@ -22,6 +22,8 @@ class Snake {
     placeFood() {
         let x = Math.floor(Math.random() * canvas.width / 10) * 10 - squareSize;
         let y = Math.floor(Math.random() * canvas.height / 10) * 10 - squareSize;
+        if (x < 0) { x = 0; }
+        if (y < 0) { y = 0; }
         this.food = [x, y];
     }
 
@@ -29,6 +31,8 @@ class Snake {
     reset() {
         let x = Math.floor(Math.random() * canvas.width / 10) * 10 - squareSize;
         let y = Math.floor(Math.random() * canvas.height / 10) * 10 - squareSize;
+        if (x < 0) { x = 0; }
+        if (y < 0) { y = 0; }
         this.speed = squareSize;
         this.body = [[x, y]];
 

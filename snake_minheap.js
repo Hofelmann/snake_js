@@ -14,7 +14,7 @@ class MinHeap {
 
     // Checks if the f cost of the child is smaller than the parent.
     check_parent(child, parent) {
-        if (this.heap[child].h < this.heap[parent].h) { return true; }
+        if (this.heap[child].f < this.heap[parent].f) { return true; }
         return false;
     }
 
@@ -40,6 +40,7 @@ class MinHeap {
         if (this.heap.length === 1) {
             return null;
         }
+        // Something messes up big here, this.heap[1] does not return the item on index 1??
         let min = this.heap[1];
         // Replace first element with last and remove last element.
         this.heap[1] = this.heap[this.heap.length - 1];

@@ -7,7 +7,7 @@ class AStar {
 
     // Return next step and remove it from solutions array.
     step() {
-        if (solution.length < 1) {
+        if (this.solution.length < 1) {
             return;
         }
         return this.solution.pop();
@@ -36,7 +36,6 @@ class AStar {
             }
             current = next;
         }
-        console.log(steps)
         this.solution = steps.reverse();
     }
 
@@ -59,7 +58,7 @@ class AStar {
     }
 
     // Checks if the current node is a valid, passable, position.
-    is_valid(node, prev) {
+    is_valid(node) {
         // Check if it is withing the borders.
         if (node.x < 0 || node.x > this.borders[0] - squareSize) { return false; }
         if (node.y < 0 || node.y > this.borders[1] - squareSize) { return false; }
@@ -78,16 +77,21 @@ class AStar {
         start.set_costs(goalX, goalY, 0);
 
         this.goal = new Node(goalX, goalY);
+        console.log("Goal:")
+        console.log(this.goal);
+        console.log("Start:")
+        console.log(start)
 
         // List of discovered nodes, currently only the starting node.
         let disc = new MinHeap();
         disc.insert(start);
-        let prev = null;
+
+        let visited = [start];
 
         // The heap will always have 1 element in it that is null.
         while (disc.size() > 1) {
             let current = disc.pop();
-            console.log(current.x, current.y, current.h);
+
             // Arrived at goal node. Return parent path in reverse.
             if (current.equals(this.goal)) {
                 console.log("Path found!");
@@ -99,19 +103,36 @@ class AStar {
             for (let i = 0; i < neighbours.length; i++) {
                 // Check if the current neighbour is able to be used as a path.
                 let n = neighbours[i];
-                if (!this.is_valid(n, prev)){
-                    prev = current;
+                if (!this.is_valid(n)){
                     continue;
                 }
+
                 let cost = current.g + 10;
-                if (cost < n.g) {
+
+                // Check if this node was known before.
+                // If it was and it's new cost is lower, change it and add to discovered.
+                let found = false;
+                for (let j = 0; j < visited.length; j++) {
+                    let v = visited[j];
+                    if (v.x === n.x && v.y === n.y) {
+                        found = true;
+                        if (cost < v.g) {
+                            v.parent = current;
+                            v.set_costs(goalX, goalY, cost);
+
+                            if (!disc.inside(v)) { disc.insert(v); }
+                        }
+                        break;
+                    }
+                }
+                // The node has not been found before, add it as a new possible path.
+                if (!found) {
                     n.parent = current;
                     n.set_costs(goalX, goalY, cost);
-
-                    if (!disc.inside(n)) { disc.insert(n); }
+                    disc.insert(n);
+                    visited.push(n);
                 }
             }
-            prev = current;
         }
         // No route has been found.
         console.log("No path :(")
@@ -131,25 +152,22 @@ var astar;
 (function setup() {
     astar = new AStar();
     snake = new Snake();
-    console.log(snake.body)
     let lastFood = snake.food;
     let borders = [canvas.width, canvas.height];
     let head = snake.body[0]
     astar.set_barriers(borders[0], borders[1], snake.body.slice(1));
     console.log("Starting solver...");
     astar.solve(head[0], head[1], lastFood[0], lastFood[1]);
-    console.log("Done solving...");
-    console.log(astar.solution);
 
-    // window.setInterval(() => {
-    //     context.clearRect(0, 0, canvas.width, canvas.height);
-    //     snake.update();
-    //     // Check if the current food block has been eaten, if so run a*.
-    //     if (lastFood[0] !== snake.food[0] && lastFood[1] !== snake.food[1]) {
-    //         astar.set_barriers(borders[0], borders[1], snake.body.slice(1));
-    //         astar.solve(snake.body[0][0], snake.body[0][0], lastFood[0], lastFood[1]);
-    //     }
-    //     snake.changeDirection(astar.step());
-    //     snake.draw();
-    // }, 150);
+    window.setInterval(() => {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        snake.update();
+        // Check if the current food block has been eaten, if so run a*.
+        if (lastFood[0] !== snake.food[0] && lastFood[1] !== snake.food[1]) {
+            astar.set_barriers(borders[0], borders[1], snake.body.slice(1));
+            astar.solve(snake.body[0][0], snake.body[0][0], lastFood[0], lastFood[1]);
+        }
+        snake.changeDirection(astar.step());
+        snake.draw();
+    }, 1000);
 }());

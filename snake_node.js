@@ -29,7 +29,7 @@ class Node {
         let offsets = [[10, 0], [-10, 0], [0, 10], [0, -10]];
         let neighbours = []
         for (let i = 0; i < offsets.length; i++) {
-            let n = new Node(this.x + offsets[i][0], this.y + offsets[i][0]);
+            let n = new Node(this.x + offsets[i][0], this.y + offsets[i][1]);
             neighbours.push(n);
         }
         return neighbours;
