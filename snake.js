@@ -33,7 +33,7 @@ class Snake {
 
     // Resets all snake values for fresh spawn.
     reset() {
-        clearGrid();
+        clearGrid(true);
         let pos = Math.floor((gridSize - 1) / 2);
         grid[pos][pos].type = SNAKE;
         this.speed = 1;
@@ -61,6 +61,8 @@ class Snake {
 
         // Check if the snake hit itself.
         if (grid[x][y].type === SNAKE) {
+            console.log("RESETTING, touched myself")
+            console.log(grid[x][y])
             this.reset();
             return;
         }
@@ -70,7 +72,7 @@ class Snake {
             this.placeFood();
         } else {
             let popped = this.body.pop();
-            grid[popped[0]][popped[1]].type = EMPTY;
+            grid[popped[0]][popped[1]].type = EMPTY;           
         }
         
         // Save the new snake

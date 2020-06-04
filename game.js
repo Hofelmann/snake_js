@@ -31,49 +31,64 @@ for (let i = 0; i < gridSize; i++) {
 	for (let j = 0; j < gridSize; j++) {
 		let x = i * squareSize;
 		let y = j * squareSize;
-		column.push(new Point(x, y, 0));
+		if (typeof astarEnabled != "undefined") {
+			column.push(new AStarPoint(x, y, 0));
+		} else {
+			column.push(new Point(x, y, 0));			
+		}
 	}
 	grid.push(column)
 }
 
-function clearGrid() {
+function clearGrid(empty) {	
 	for (let i = 0; i < gridSize; i++) {
 		for (let j = 0; j < gridSize; j++) {
-			grid[i][j].type = EMPTY;
+			grid[i][j].reset();
+			if (empty) { grid[i][j].type = EMPTY; }
 		}
 	}
 }
 
-var snake = new Snake();
 
 (function setup() {
+	var snake = new Snake();
+	var astar = new AStar();
+	let lastFood = snake.food;
+	astar.solve(snake.body[0][0], snake.body[0][1], lastFood[0], lastFood[1]);
+    snake.draw();
     // Main loop to operate snake and place new food.
     window.setInterval(() => {
         context.clearRect(0, 0, canvas.width, canvas.height);
+        drawPath(astar.route);
+        astar.step(snake);
         snake.update();
+        if(lastFood[0] !== snake.food[0] && lastFood[1] !== snake.food[1]) {
+        	astar.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1]);
+        	lastFood = snake.food;
+        }
         snake.draw();
-    }, 200);
+    }, 50);
 }());
 
-window.addEventListener("keydown", event => {
-    switch (event.key) {
-        case "w":
-        case "ArrowUp":
-            snake.goNorth();
-            break;
-        case "s":
-        case "ArrowDown":
-            snake.goSouth();
-            break;
-        case "d":
-        case "ArrowRight":
-            snake.goEast();
-            break;
-        case "a":
-        case "ArrowLeft":
-            snake.goWest();
-            break;
-        default:
-            break;
-    }
-});
+// window.addEventListener("keydown", event => {
+//     switch (event.key) {
+//         case "w":
+//         case "ArrowUp":
+//             snake.goNorth();
+//             break;
+//         case "s":
+//         case "ArrowDown":
+//             snake.goSouth();
+//             break;
+//         case "d":
+//         case "ArrowRight":
+//             snake.goEast();
+//             break;
+//         case "a":
+//         case "ArrowLeft":
+//             snake.goWest();
+//             break;
+//         default:
+//             break;
+//     }
+// });
