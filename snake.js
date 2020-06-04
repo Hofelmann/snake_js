@@ -20,10 +20,22 @@ class Snake {
 
     // Place food on the grid.
     placeFood() {
-        let x = Math.floor(Math.random() * canvas.width / 10) * 10 - squareSize;
-        let y = Math.floor(Math.random() * canvas.height / 10) * 10 - squareSize;
-        if (x < 0) { x = 0; }
-        if (y < 0) { y = 0; }
+        // Place food on grid but not on the snake.
+        let x;
+        let y;
+        while (true) {
+            x = Math.floor(Math.random() * canvas.width / 10) * 10 - squareSize;
+            y = Math.floor(Math.random() * canvas.height / 10) * 10 - squareSize;
+            if (x < 0) { x = 0; }
+            if (y < 0) { y = 0; }
+
+            // Check if the food is placed inside the body
+            for (let i = 0; i < this.body.length; i++) {
+                let part = this.body[i];
+                if (x === part[0] && y === part[1]) { continue; }
+            }
+            break;
+        }
         this.food = [x, y];
     }
 

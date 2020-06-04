@@ -1,3 +1,11 @@
+function drawPath(path) {
+    for (let i = 0; i < path.length; i++) {
+        p = path[i];
+        context.fillStyle = "#f542d4";
+        context.fillRect(p.x + 3, p.y + 3, 4, 4);
+    }
+}
+
 class AStar {
     constructor() {
         this.impassable;
@@ -12,6 +20,9 @@ class AStar {
             this.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1])
         }
         let diff = this.solution.pop();
+        if (!diff) {
+            this.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1])
+        }
         // There can only be a move in 1 direction.
         // Thus if diffX is 0 than the change is in the y direction.
         if (diff[0] === 0) {
@@ -39,7 +50,7 @@ class AStar {
             steps.push([diffX, diffY]);
             current = next;
         }
-        this.solution = steps;
+        this.solution = steps.reverse();
     }
 
     // Traverses the given node all the way up to the first parent
@@ -50,6 +61,7 @@ class AStar {
             path.push(node);
             node = node.parent;
         }
+        this.route = path.slice();
         this.convertPath(path)
     }
 
@@ -79,10 +91,6 @@ class AStar {
         start.setCosts(goalX, goalY, 0);
 
         this.goal = new Node(goalX, goalY);
-        console.log("Goal:")
-        console.log(this.goal);
-        console.log("Start:")
-        console.log(start)
 
         // List of discovered nodes, currently only the starting node.
         let disc = new MinHeap();
@@ -160,14 +168,15 @@ var astar;
 
     window.setInterval(() => {
         context.clearRect(0, 0, canvas.width, canvas.height);
+        drawPath(astar.route);
         snake.update();
         // Check if the current food block has been eaten, if so run a*.
         if (lastFood[0] !== snake.food[0] && lastFood[1] !== snake.food[1]) {
             astar.setBarriers(borders[0], borders[1], snake.body.slice(1));
-            astar.solve(snake.body[0][0], snake.body[0][0], snake.food[0], snake.food[1]);
+            astar.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1]);
             lastFood = snake.food;
         }
         astar.step();
         snake.draw();
-    }, 150);
+    }, 500);
 }());
