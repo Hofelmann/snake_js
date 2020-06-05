@@ -1,42 +1,40 @@
+const astarEnabled = true;
+
 function drawPath(path) {
     for (let i = 0; i < path.length; i++) {
         p = path[i];
         context.fillStyle = "#f542d4";
-        context.fillRect(p.x + 3, p.y + 3, 4, 4);
+        context.fillRect(p.x + 5, p.y + 5, 20, 20);
     }
 }
 
 class AStar {
     constructor() {
-        this.impassable;
-        this.borders;
         this.solution = [];
     }
 
     // Return next step and remove it from solutions array.
-    step() {
+    step(snake) {
         // Somehow the steps did not lead to the food, figure out a new route.
-        if (this.solution.length < 1) {
+        if (this.solution.length === 0) {
             this.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1])
         }
         let diff = this.solution.pop();
-        if (!diff) {
-            this.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1])
-        }
         // There can only be a move in 1 direction.
         // Thus if diffX is 0 than the change is in the y direction.
         if (diff[0] === 0) {
-            if (diff[1] === 10) {
+            if (diff[1] > 0) {
                 snake.goSouth();
             } else {
                 snake.goNorth();
             }
         }
-        else if (diff[0] === 10) {
+        else if (diff[0] > 0) {
             snake.goEast();
         } else {
             snake.goWest();
         }
+        return
     }
 
     convertPath(path) {
@@ -55,60 +53,53 @@ class AStar {
 
     // Traverses the given node all the way up to the first parent
     // Returns the reversed lists with the path from start to finish.
-    getPath(node) {
+    getPath(point) {
         let path = [];
-        while (node !== null) {
-            path.push(node);
-            node = node.parent;
+        while (point !== null) {
+            path.push(point);
+            point = point.parent;
         }
         this.route = path.slice();
         this.convertPath(path)
     }
 
-    // Set the canvas borders and impassable blocks on the canvas.
-    setBarriers(width, height, blocks) {
-        this.impassable = blocks;
-        this.borders = [width, height];
-    }
-
     // Checks if the current node is a valid, passable, position.
-    isValid(node) {
-        // Check if it is withing the borders.
-        if (node.x < 0 || node.x > this.borders[0] - squareSize) { return false; }
-        if (node.y < 0 || node.y > this.borders[1] - squareSize) { return false; }
-        // Check if the position matches any of the impassable blocks.
-        for (let i = 0; i < this.impassable.length; i++) {
-            let block = this.impassable[i];
-            if (node.x === block[0] && node.y === block[1]) { return false; }
-        }
+    isValid(point) {
+        let pPos = point.gridPosition;
+        if (grid[pPos[0]][pPos[1]].type === SNAKE) { return false; }
         return true;
     }
 
     // Find the best route from start to goal using a* algorithm.
     // Uses custom node and min-heap structure.
     solve(startX, startY, goalX, goalY) {
-        let start = new Node(startX, startY);
-        start.setCosts(goalX, goalY, 0);
+        // First clear the grid of any previous values.
+        clearGrid(false);
 
-        this.goal = new Node(goalX, goalY);
-
+        this.goal = grid[goalX][goalY];
+        let goalPos = this.goal.gridPosition;
+        let start = grid[startX][startY];
+        start.heuristic(this.goal);
+        start.cost = 0;
+        start.visit();
         // List of discovered nodes, currently only the starting node.
         let disc = new MinHeap();
         disc.insert(start);
 
-        let visited = [start];
-
         // The heap will always have 1 element in it that is null.
         while (disc.size() > 1) {
             let current = disc.pop();
+            let cPos = current.gridPosition;
 
-            // Arrived at goal node. Return parent path in reverse.
-            if (current.equals(this.goal)) {
+            if (cPos[0] === goalPos[0] && cPos[1] === goalPos[1]) {
                 this.getPath(current);
                 return;
             }
 
-            let neighbours = current.getNeighbours();
+            if (!current.n) {
+                current.neighbours();
+            }
+            let neighbours = current.n;
             for (let i = 0; i < neighbours.length; i++) {
                 // Check if the current neighbour is able to be used as a path.
                 let n = neighbours[i];
@@ -116,30 +107,23 @@ class AStar {
                     continue;
                 }
 
-                let cost = current.g + 10;
+                let cost = current.g + 1;
 
-                // Check if this node was known before.
-                // If it was and it's new cost is lower, change it and add to discovered.
-                let found = false;
-                for (let j = 0; j < visited.length; j++) {
-                    let v = visited[j];
-                    if (v.x === n.x && v.y === n.y) {
-                        found = true;
-                        if (cost < v.g) {
-                            v.parent = current;
-                            v.setCosts(goalX, goalY, cost);
+                // If it has been visited before but this path is shorter.
+                if (n.visited) {
+                    if (cost < n.g) {
+                        n.parent = current;
+                        n.heuristic(this.goal);
+                        n.cost = cost;
 
-                            if (!disc.inside(v)) { disc.insert(v); }
-                        }
-                        break;
+                        if (!disc.inside(n)) { disc.insert(n); }
                     }
-                }
-                // The node has not been found before, add it as a new possible path.
-                if (!found) {
+                } else {
                     n.parent = current;
-                    n.setCosts(goalX, goalY, cost);
+                    n.heuristic(this.goal);
+                    n.cost = cost;
+                    n.visit();
                     disc.insert(n);
-                    visited.push(n);
                 }
             }
         }
@@ -147,36 +131,3 @@ class AStar {
         return
     }
 }
-
-
-
-const canvas = document.querySelector("canvas.snake");
-const squareSize = 10;
-const context = canvas.getContext("2d");
-
-var snake;
-var astar;
-
-(function setup() {
-    astar = new AStar();
-    snake = new Snake();
-    let lastFood = snake.food;
-    let borders = [canvas.width, canvas.height];
-    let head = snake.body[0]
-    astar.setBarriers(borders[0], borders[1], snake.body.slice(1));
-    astar.solve(head[0], head[1], snake.food[0], snake.food[1]);
-
-    window.setInterval(() => {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        drawPath(astar.route);
-        snake.update();
-        // Check if the current food block has been eaten, if so run a*.
-        if (lastFood[0] !== snake.food[0] && lastFood[1] !== snake.food[1]) {
-            astar.setBarriers(borders[0], borders[1], snake.body.slice(1));
-            astar.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1]);
-            lastFood = snake.food;
-        }
-        astar.step();
-        snake.draw();
-    }, 500);
-}());
