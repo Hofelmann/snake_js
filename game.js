@@ -67,7 +67,7 @@ function clearGrid(empty) {
         	lastFood = snake.food;
         }
         snake.draw();
-    }, 50);
+    }, 20);
 }());
 
 // window.addEventListener("keydown", event => {

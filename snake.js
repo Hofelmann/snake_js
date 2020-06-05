@@ -61,8 +61,6 @@ class Snake {
 
         // Check if the snake hit itself.
         if (grid[x][y].type === SNAKE) {
-            console.log("RESETTING, touched myself")
-            console.log(grid[x][y])
             this.reset();
             return;
         }

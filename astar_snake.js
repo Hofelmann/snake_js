@@ -1,10 +1,9 @@
 const astarEnabled = true;
 
-function drawPath(path) {
-    for (let i = 0; i < path.length; i++) {
-        p = path[i];
+function drawPath(p) {
+    for (let i = 0; i < p.length; i++) {
         context.fillStyle = "#f542d4";
-        context.fillRect(p.x + 5, p.y + 5, 20, 20);
+        context.fillRect(p[i].x + 5, p[i].y + 5, 20, 20);
     }
 }
 
@@ -20,6 +19,10 @@ class AStar {
             this.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1])
         }
         let diff = this.solution.pop();
+        if (!diff) {
+            // No path was found even when using avoidance.
+            return;
+        }
         // There can only be a move in 1 direction.
         // Thus if diffX is 0 than the change is in the y direction.
         if (diff[0] === 0) {
@@ -37,12 +40,12 @@ class AStar {
         return
     }
 
-    convertPath(path) {
+    convertPath(p) {
         let steps = [];
-        let current = path.pop()
-        let len = path.length;
+        let current = p.pop()
+        let len = p.length;
         for (let i = 0; i < len; i++) {
-            let next = path.pop();
+            let next = p.pop();
             let diffX = next.x - current.x;
             let diffY = next.y - current.y;
             steps.push([diffX, diffY]);
@@ -53,14 +56,14 @@ class AStar {
 
     // Traverses the given node all the way up to the first parent
     // Returns the reversed lists with the path from start to finish.
-    getPath(point) {
-        let path = [];
+    createPath(point) {
+        let p = [];
         while (point !== null) {
-            path.push(point);
+            p.push(point);
             point = point.parent;
         }
-        this.route = path.slice();
-        this.convertPath(path)
+        this.route = p.slice();
+        this.convertPath(p)
     }
 
     // Checks if the current node is a valid, passable, position.
@@ -68,6 +71,24 @@ class AStar {
         let pPos = point.gridPosition;
         if (grid[pPos[0]][pPos[1]].type === SNAKE) { return false; }
         return true;
+    }
+
+    // Add a single step to the solution to avoid any blocks that will reset
+    // the snake. Not the optimal solution but it works well enough.
+    avoid(current) {
+        current.parent = null;
+        if (!current.n) {
+            current.neighbours();
+        }
+        for (let i = 0; i < current.n.length; i++) {
+            let n = current.n[i];
+            if (this.isValid(n)){
+                n.parent = current;
+                this.createPath(n);
+                return;
+            }
+        }
+
     }
 
     // Find the best route from start to goal using a* algorithm.
@@ -92,7 +113,7 @@ class AStar {
             let cPos = current.gridPosition;
 
             if (cPos[0] === goalPos[0] && cPos[1] === goalPos[1]) {
-                this.getPath(current);
+                this.createPath(current);
                 return;
             }
 
@@ -128,6 +149,7 @@ class AStar {
             }
         }
         // No route has been found.
-        return
+        this.avoid(start);
+        return;
     }
 }
