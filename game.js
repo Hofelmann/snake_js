@@ -1,3 +1,4 @@
+// Retrieve canvas and calculate the dimensions.
 const canvas = document.getElementById("snake_canvas");
 const gridSize = 30;
 const screenWidth = Math.floor(window.innerWidth / gridSize) * gridSize;
@@ -40,29 +41,43 @@ for (let i = 0; i < gridSize; i++) {
 	grid.push(column)
 }
 
+// Clear the grid points, either only the types or the astar values.
 function clearGrid(empty) {	
 	for (let i = 0; i < gridSize; i++) {
 		for (let j = 0; j < gridSize; j++) {
-			grid[i][j].reset();
-			if (empty) { grid[i][j].type = EMPTY; }
+			if (typeof astarEnabled != "undefined") {
+				grid[i][j].reset();
+			}
+			if (empty) {
+				grid[i][j].type = EMPTY;
+			}
 		}
 	}
 }
 
+var snake;
 
+// Main function that runs the game.
 (function setup() {
-	var snake = new Snake();
-	var astar = new AStar();
-	let lastFood = snake.food;
-	astar.solve(snake.body[0][0], snake.body[0][1], lastFood[0], lastFood[1]);
+	snake = new Snake();''
+	let lastFood;
+	if (typeof astarEnabled != "undefined") {
+		var astar = new AStar();
+		lastFood = snake.food;
+		astar.solve(snake.body[0][0], snake.body[0][1], lastFood[0], lastFood[1]);
+	}
     snake.draw();
     // Main loop to operate snake and place new food.
     window.setInterval(() => {
         context.clearRect(0, 0, canvas.width, canvas.height);
-        drawPath(astar.route);
-        astar.step(snake);
+        if (typeof astarEnabled != "undefined") {
+	        drawPath(astar.route);
+	        astar.step(snake);
+	    }
         snake.update();
-        if(lastFood[0] !== snake.food[0] && lastFood[1] !== snake.food[1]) {
+        // If the snake has eaten the food, get a new path.
+        if(typeof astarEnabled != "undefined" &&
+           lastFood[0] !== snake.food[0] && lastFood[1] !== snake.food[1]) {
         	astar.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1]);
         	lastFood = snake.food;
         }
@@ -70,25 +85,29 @@ function clearGrid(empty) {
     }, 20);
 }());
 
-// window.addEventListener("keydown", event => {
-//     switch (event.key) {
-//         case "w":
-//         case "ArrowUp":
-//             snake.goNorth();
-//             break;
-//         case "s":
-//         case "ArrowDown":
-//             snake.goSouth();
-//             break;
-//         case "d":
-//         case "ArrowRight":
-//             snake.goEast();
-//             break;
-//         case "a":
-//         case "ArrowLeft":
-//             snake.goWest();
-//             break;
-//         default:
-//             break;
-//     }
-// });
+// Manual input for when playing snake yourself.
+window.addEventListener("keydown", event => {
+	if (typeof astarEnabled != "undefined") {
+		return;
+	}
+    switch (event.key) {
+        case "w":
+        case "ArrowUp":
+            snake.goNorth();
+            break;
+        case "s":
+        case "ArrowDown":
+            snake.goSouth();
+            break;
+        case "d":
+        case "ArrowRight":
+            snake.goEast();
+            break;
+        case "a":
+        case "ArrowLeft":
+            snake.goWest();
+            break;
+        default:
+            break;
+    }
+});

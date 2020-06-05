@@ -1,5 +1,7 @@
 const astarEnabled = true;
 
+// Draw the path that astar has found.
+// TODO: Move drawing to a drawing focused file / area for all elements.
 function drawPath(p) {
     for (let i = 0; i < p.length; i++) {
         context.fillStyle = "#f542d4";
@@ -15,6 +17,7 @@ class AStar {
     // Return next step and remove it from solutions array.
     step(snake) {
         // Somehow the steps did not lead to the food, figure out a new route.
+        // If there is no route, simple self avoidance will be used.
         if (this.solution.length === 0) {
             this.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1])
         }
@@ -40,6 +43,7 @@ class AStar {
         return
     }
 
+    // Convert the found path to an array of differences.
     convertPath(p) {
         let steps = [];
         let current = p.pop()
@@ -75,6 +79,8 @@ class AStar {
 
     // Add a single step to the solution to avoid any blocks that will reset
     // the snake. Not the optimal solution but it works well enough.
+    // Checks if it has a valid neighbour(1), if this neigbour has 2 valid
+    // neighbours(2) of itself, choose neighbour(1) as the next step.
     avoid(current) {
         current.parent = null;
         if (!current.n) {
@@ -83,12 +89,21 @@ class AStar {
         for (let i = 0; i < current.n.length; i++) {
             let n = current.n[i];
             if (this.isValid(n)){
-                n.parent = current;
-                this.createPath(n);
-                return;
+                // Is this neighbour has at least 2 valid neighbours.
+                if (!n.n) {
+                    n.neighbours();
+                }
+                let valids = 0;
+                for (let j = 0; j < n.n.length; j++) {
+                    if (this.isValid(n.n[j])) { valids++; }
+                    if (valids > 1) {
+                        n.parent = current;
+                        this.createPath(n);
+                        return;
+                    }
+                }
             }
         }
-
     }
 
     // Find the best route from start to goal using a* algorithm.
@@ -97,6 +112,7 @@ class AStar {
         // First clear the grid of any previous values.
         clearGrid(false);
 
+        // Set starting values.
         this.goal = grid[goalX][goalY];
         let goalPos = this.goal.gridPosition;
         let start = grid[startX][startY];
@@ -111,12 +127,13 @@ class AStar {
         while (disc.size() > 1) {
             let current = disc.pop();
             let cPos = current.gridPosition;
-
+            // Check if it has reached the goal point.
             if (cPos[0] === goalPos[0] && cPos[1] === goalPos[1]) {
                 this.createPath(current);
                 return;
             }
 
+            // Generate neighbours if this hasn't been done before.
             if (!current.n) {
                 current.neighbours();
             }
@@ -139,7 +156,9 @@ class AStar {
 
                         if (!disc.inside(n)) { disc.insert(n); }
                     }
-                } else {
+                }
+                // The path has not been visited before.
+                else {
                     n.parent = current;
                     n.heuristic(this.goal);
                     n.cost = cost;
@@ -148,7 +167,7 @@ class AStar {
                 }
             }
         }
-        // No route has been found.
+        // No route has been found, try to avoid any snake blocks.
         this.avoid(start);
         return;
     }

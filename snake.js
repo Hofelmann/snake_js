@@ -3,6 +3,7 @@ class Snake {
         this.reset();
     }
     // Draws everything onto the canvas.
+    // TODO: Move drawing to a drawing focused file / area for all elements.
     draw() {
         // Draw snake
         for(let i = 0; i < this.body.length; i++) {
@@ -23,6 +24,7 @@ class Snake {
         while(true) {
             let x = Math.floor(Math.random() * gridSize);
             let y = Math.floor(Math.random() * gridSize);
+            // Check if the food isn't inside the snake.
             if (grid[x][y].empty) {
                 this.food = [x, y];
                 grid[x][y].type = FOOD;
