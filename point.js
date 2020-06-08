@@ -23,7 +23,8 @@ class Point {
 
 	// Check if this point is an empty node or not.
 	get empty() {
-		if (this.pointType === 0) { return true; }
+		if (this.pointType === 0)
+			return true;
 		return false;
 	}
 
@@ -77,9 +78,8 @@ class AStarPoint extends Point {
 			let nY = gridPos[1] + offsets[i][1];
 
 			// Check if the neighbour is in the grid.
-			if (nX < 0 || nX >= gridSize || nY < 0 || nY >= gridSize) {
+			if (nX < 0 || nX >= gridSize || nY < 0 || nY >= gridSize)
 				continue;
-			}
 			n.push(grid[nX][nY]);
 		}
 		this.n = n;

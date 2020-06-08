@@ -1,10 +1,13 @@
+// This variable is used in game.js to check if this file is included.
 const astarEnabled = true;
+
+const c_path = "#f542d4";
 
 // Draw the path that astar has found.
 // TODO: Move drawing to a drawing focused file / area for all elements.
 function drawPath(p) {
     for (let i = 0; i < p.length; i++) {
-        context.fillStyle = "#f542d4";
+        context.fillStyle = c_path;
         context.fillRect(p[i].x + 5, p[i].y + 5, 20, 20);
     }
 }
@@ -18,28 +21,24 @@ class AStar {
     step(snake) {
         // Somehow the steps did not lead to the food, figure out a new route.
         // If there is no route, simple self avoidance will be used.
-        if (this.solution.length === 0) {
+        if (this.solution.length === 0)
             this.solve(snake.body[0][0], snake.body[0][1], snake.food[0], snake.food[1])
-        }
         let diff = this.solution.pop();
-        if (!diff) {
-            // No path was found even when using avoidance.
+        // No path was found even when using avoidance.
+        if (!diff)
             return;
-        }
         // There can only be a move in 1 direction.
         // Thus if diffX is 0 than the change is in the y direction.
         if (diff[0] === 0) {
-            if (diff[1] > 0) {
+            if (diff[1] > 0)
                 snake.goSouth();
-            } else {
+            else
                 snake.goNorth();
-            }
         }
-        else if (diff[0] > 0) {
+        else if (diff[0] > 0)
             snake.goEast();
-        } else {
+        else
             snake.goWest();
-        }
         return
     }
 

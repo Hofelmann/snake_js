@@ -87,9 +87,8 @@ var snake;
 
 // Manual input for when playing snake yourself.
 window.addEventListener("keydown", event => {
-	if (typeof astarEnabled != "undefined") {
+	if (typeof astarEnabled != "undefined")
 		return;
-	}
     switch (event.key) {
         case "w":
         case "ArrowUp":
